@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Länder Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>🌍 Länder Quiz</h1>
+
+    <h2 id="country">Land</h2>
+
+    <img id="flag" src="" alt="Flagge">
+
+    <input id="answer" placeholder="Hauptstadt eingeben">
+
+    <p id="result"></p>
+
+    <button id="checkBtn" onclick="checkAnswer()">Prüfen</button>
+
+    <button id="nextBtn" onclick="nextQuestion()" style="display:none;">
+        Weiter ➜
+    </button>
+
+    <h3>Punkte: <span id="score">0</span></h3>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
