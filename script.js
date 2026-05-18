@@ -223,15 +223,13 @@ function nextQuestion() {
     current = countries[Math.floor(Math.random() * countries.length)];
 
     document.getElementById("country").innerText = current.land;
-
-    // 👉 NEU: Flagge setzen
     document.getElementById("flag").src = current.flag;
 
     document.getElementById("answer").value = "";
     document.getElementById("result").innerText = "";
 
-    document.getElementById("nextBtn").style.display = "none";
     document.getElementById("checkBtn").style.display = "block";
+    document.getElementById("nextBtn").style.display = "none";
 
     answered = false;
 }
@@ -245,24 +243,31 @@ function checkAnswer() {
         .trim()
         .toLowerCase();
 
-    let correctAnswers = current.hauptstadt;
+    let correct = current.hauptstadt;
 
-    // Falls nur eine Hauptstadt existiert
-    if (!Array.isArray(correctAnswers)) {
-        correctAnswers = [correctAnswers];
-    }
+    if (Array.isArray(correct)) {
 
-    const isCorrect = correctAnswers.some(
-        city => city.toLowerCase() === user
-    );
+        const isCorrect = correct.some(city =>
+            city.toLowerCase() === user
+        );
 
-    if (isCorrect) {
-        score++;
-        document.getElementById("result").innerText =
-            "✅ Richtig!";
+        if (isCorrect) {
+            score++;
+            document.getElementById("result").innerText = "✅ Richtig!";
+        } else {
+            document.getElementById("result").innerText =
+                "❌ Richtig: " + correct.join(", ");
+        }
+
     } else {
-        document.getElementById("result").innerText =
-            "❌ Richtig wäre: " + correctAnswers.join(", ");
+
+        if (user === correct.toLowerCase()) {
+            score++;
+            document.getElementById("result").innerText = "✅ Richtig!";
+        } else {
+            document.getElementById("result").innerText =
+                "❌ Richtig: " + correct;
+        }
     }
 
     document.getElementById("score").innerText = score;
@@ -272,27 +277,6 @@ function checkAnswer() {
     document.getElementById("checkBtn").style.display = "none";
     document.getElementById("nextBtn").style.display = "block";
 }
-function checkAnswer() {
-    if (answered) return;
 
-    const user = document.getElementById("answer").value.trim().toLowerCase();
-    const correct = current.hauptstadt.toLowerCase();
-
-    if (user === correct) {
-        document.getElementById("result").innerText = "✅ Richtig!";
-        score++;
-    } else {
-        document.getElementById("result").innerText =
-            "❌ Falsch! Richtig: " + current.hauptstadt;
-    }
-
-    document.getElementById("score").innerText = score;
-
-    answered = true;
-
-    // Buttons umschalten
-    document.getElementById("checkBtn").style.display = "none";
-    document.getElementById("nextBtn").style.display = "block";
-}
-
+// 🚀 START
 nextQuestion();
