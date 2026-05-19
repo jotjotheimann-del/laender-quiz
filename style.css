@@ -18,6 +18,21 @@ input:focus {
     }
 }
 
+@media (max-width: 1024px) {
+
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 500px;
+    }
+}
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
