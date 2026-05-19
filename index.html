@@ -7,29 +7,73 @@
 </head>
 <body>
 
-<div class="container">
+    <!-- ☰ Menü Button -->
+    <button id="menuBtn" onclick="openMenu()">☰</button>
 
-    <h1>🌍 Länder Quiz</h1>
 
-    <h2 id="country">Land</h2>
+    <!-- 🌍 Overlay -->
+    <div id="overlay">
 
-    <img id="flag" src="" alt="Flagge">
+        <div id="menuBox">
 
-    <input id="answer" placeholder="Hauptstadt eingeben">
+            <h1>🌍 Länder Quiz</h1>
 
-    <p id="result"></p>
+            <button onclick="selectContinent('Europa')">
+                🇪🇺 Europa
+            </button>
 
-    <button id="checkBtn" onclick="checkAnswer()">Prüfen</button>
+            <button onclick="selectContinent('Amerika')">
+                🌎 Amerika
+            </button>
 
-    <button id="nextBtn" onclick="nextQuestion()" style="display:none;">
-        Weiter ➜
-    </button>
+            <button onclick="selectContinent('Afrika')">
+                🌍 Afrika
+            </button>
 
-    <h3>Punkte: <span id="score">0</span></h3>
+            <button onclick="selectContinent('AsienOzeanien')">
+                🌏 Asien + Ozeanien
+            </button>
 
-</div>
+            <button onclick="selectContinent('Welt')">
+                🌐 Ganze Welt
+            </button>
 
-<script src="script.js"></script>
+        </div>
+
+    </div>
+
+
+    <!-- 🎮 Quiz -->
+    <div class="container">
+
+        <h2 id="country"></h2>
+
+        <img id="flag" src="">
+
+        <input
+            type="text"
+            id="answer"
+            placeholder="Hauptstadt eingeben"
+        >
+
+        <button id="checkBtn" onclick="checkAnswer()">
+            Prüfen
+        </button>
+
+        <button id="nextBtn" onclick="nextQuestion()">
+            Weiter
+        </button>
+
+        <p id="result"></p>
+
+        <p>
+            Punkte: <span id="score">0</span>
+        </p>
+        
+
+    </div>
+
+    <script src="script.js"></script>
 
 </body>
 </html>
