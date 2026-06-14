@@ -2,74 +2,100 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Länder Quiz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌍 Länder Quiz</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- ☰ Menü Button -->
+    <!-- Menü Button -->
     <button id="menuBtn" onclick="openMenu()">☰</button>
 
-
-    <!-- 🌍 Overlay -->
+    <!-- Overlay -->
     <div id="overlay">
 
         <div id="menuBox">
 
             <h1>🌍 Länder Quiz</h1>
 
-            <button onclick="selectContinent('Europa')">
-                🇪🇺 Europa
-            </button>
+            <!-- Schritt 1 -->
+            <div id="stepMode">
 
-            <button onclick="selectContinent('Amerika')">
-                🌎 Amerika
-            </button>
+                <h2>Spielmodus wählen</h2>
 
-            <button onclick="selectContinent('Afrika')">
-                🌍 Afrika
-            </button>
+                <button onclick="chooseMode('hauptstadt')">
+                    🏙️ Hauptstadt
+                </button>
 
-            <button onclick="selectContinent('AsienOzeanien')">
-                🌏 Asien + Ozeanien
-            </button>
+                <button onclick="chooseMode('flagge')">
+                    🏳️ Flaggen
+                </button>
 
-            <button onclick="selectContinent('Welt')">
-                🌐 Ganze Welt
-            </button>
+            </div>
+
+            <!-- Schritt 2 -->
+            <div id="stepContinent" style="display:none;">
+
+                <h2>Kontinent wählen</h2>
+
+                <button onclick="selectContinent('Europa')">
+                    🇪🇺 Europa
+                </button>
+
+                <button onclick="selectContinent('Amerika')">
+                    🌎 Amerika
+                </button>
+
+                <button onclick="selectContinent('Afrika')">
+                    🌍 Afrika
+                </button>
+
+                <button onclick="selectContinent('AsienOzeanien')">
+                    🌏 Asien + Ozeanien
+                </button>
+
+                <button onclick="selectContinent('Welt')">
+                    🌐 Ganze Welt
+                </button>
+
+            </div>
 
         </div>
 
     </div>
 
-
-    <!-- 🎮 Quiz -->
+    <!-- Quiz -->
     <div class="container">
 
-        <h2 id="country"></h2>
+        <div id="flagWrap">
+            <img id="flag" src="" alt="Flagge">
+        </div>
 
-        <img id="flag" src="">
+        <h2 id="country"></h2>
 
         <input
             type="text"
             id="answer"
-            placeholder="Hauptstadt eingeben"
+            placeholder="Hauptstadt eingeben..."
         >
+
+        <div id="choices" style="display:none;"></div>
 
         <button id="checkBtn" onclick="checkAnswer()">
             Prüfen
         </button>
 
-        <button id="nextBtn" onclick="nextQuestion()">
+        <button id="nextBtn" onclick="next()" style="display:none;">
             Weiter
         </button>
 
         <p id="result"></p>
 
-        <p>
-            Punkte: <span id="score">0</span>
-        </p>
-        
+        <div id="scoreContainer">
+            Punkte:
+            <span id="score">0</span>
+        </div>
 
     </div>
 

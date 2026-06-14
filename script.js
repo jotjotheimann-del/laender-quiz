@@ -220,6 +220,12 @@ let currentIndex = 0;
 let current;
 let score = 0;
 let answered = false;
+let gameMode = "hauptstadt";
+
+function goBack() {
+    document.getElementById("stepContinent").style.display = "none";
+    document.getElementById("stepMode").style.display = "block";
+}
 
 function openMenu() {
     document.getElementById("overlay").style.display = "flex";
@@ -228,14 +234,25 @@ function openMenu() {
 
 function selectContinent(continent) {
 
-    console.log("Gewählt:", continent);
+    let list = [];
 
-    filteredCountries = countries.filter(c =>
-        c.kontinent === continent
-    );
+    if (continent === "Welt") {
+        list = countries;
+    } else {
+        list = countries.filter(c =>
+            c.kontinent === continent
+        );
+    }
 
-    quizCountries = shuffle([...filteredCountries]);
+    if (!list || list.length === 0) {
+        alert("Keine Länder gefunden!");
+        return;
+    }
+
+    quizCountries = shuffle([...list]);
     currentIndex = 0;
+    score = 0;
+    document.getElementById("score").innerText = score;
 
     document.getElementById("overlay").style.display = "none";
 
@@ -245,25 +262,58 @@ function selectContinent(continent) {
 
 function nextQuestion() {
 
-    // 🔁 Wenn alle durch sind → neu mischen
     if (currentIndex >= quizCountries.length) {
-        quizCountries = shuffle([...filteredCountries]);
         currentIndex = 0;
+        quizCountries = shuffle([...quizCountries]);
     }
 
     current = quizCountries[currentIndex];
-    currentIndex++;
 
-    document.getElementById("country").innerText = current.land;
-    document.getElementById("flag").src = current.flag;
+    // RESET UI
+    const result = document.getElementById("result");
+    result.innerText = "";
+    result.className = "";
+
+    document.getElementById("nextBtn").style.display = "none";
+    document.getElementById("checkBtn").style.display = "block";
 
     document.getElementById("answer").value = "";
-    document.getElementById("result").innerText = "";
 
-    document.getElementById("checkBtn").style.display = "inline-block";
-    document.getElementById("nextBtn").style.display = "none";
+    const choicesBox = document.getElementById("choices");
+    if (choicesBox) {
+        choicesBox.innerHTML = "";
+    }
 
     answered = false;
+
+    // MODUS: Hauptstadt
+    if (gameMode === "hauptstadt") {
+
+        document.getElementById("flag").style.display = "block";
+        document.getElementById("answer").style.display = "block";
+        document.getElementById("choices").style.display = "none";
+
+        document.getElementById("flag").src = current.flag;
+        document.getElementById("country").innerText =
+             current.land;
+
+    }
+
+    // MODUS: Flagge
+    else if (gameMode === "flagge") {
+
+        document.getElementById("flag").style.display = "block";
+        document.getElementById("answer").style.display = "none";
+        document.getElementById("checkBtn").style.display = "none";
+        document.getElementById("choices").style.display = "block";
+        document.getElementById("choices").innerHTML = "";
+
+        document.getElementById("flag").src = current.flag;
+        document.getElementById("country").innerText =
+            "Zu welchem Land gehört diese Flagge?";
+
+        generateChoices(current);
+    }
 }
 
 
@@ -295,13 +345,12 @@ function checkAnswer() {
     if (isCorrect) {
 
         score++;
-        document.getElementById("result").innerText = "✅ Richtig!";
+        const r1 = document.getElementById("result"); r1.innerText = "✅ Richtig!"; r1.className = "correct";
 
     } else {
 
         document.getElementById("result").innerText =
-            "❌ Richtig: " +
-            (Array.isArray(correct) ? correct.join(", ") : correct);
+            "❌ Richtig: " + (Array.isArray(correct) ? correct.join(", ") : correct); document.getElementById("result").className = "wrong";
     }
 
     document.getElementById("score").innerText = score;
@@ -322,4 +371,94 @@ function shuffle(array) {
     }
 
     return array;
+}
+
+function generateChoices(correctCountry) {
+
+    const container = document.getElementById("choices");
+
+    if (!container) return;
+
+    let choices = [correctCountry.land];
+    const possibleChoices = quizCountries.length >= 4 ? quizCountries : countries;
+
+    while (choices.length < 4) {
+
+        let random = possibleChoices[Math.floor(Math.random() * possibleChoices.length)];
+
+        if (!choices.includes(random.land)) {
+            choices.push(random.land);
+        }
+    }
+
+    choices = shuffle(choices);
+
+    container.innerHTML = "";
+
+    choices.forEach(choice => {
+
+        const btn = document.createElement("button");
+
+        btn.className = "choiceBtn";
+        btn.innerText = choice;
+
+        btn.onclick = function () {
+            checkChoice(choice);
+        };
+
+        container.appendChild(btn);
+    });
+}
+
+function checkChoice(choice) {
+
+    if (answered) return;
+
+    answered = true;
+
+    if (choice === current.land) {
+        score++;
+        const r1 = document.getElementById("result"); r1.innerText = "✅ Richtig!"; r1.className = "correct";
+    } else {
+        const r2 = document.getElementById("result"); r2.innerText = "❌ Richtig: " + current.land; r2.className = "wrong";
+    }
+
+    document.querySelectorAll(".choiceBtn").forEach(btn => {
+        btn.disabled = true;
+
+        if (btn.innerText === current.land) {
+            btn.classList.add("correctChoice");
+        } else if (btn.innerText === choice) {
+            btn.classList.add("wrongChoice");
+        }
+    });
+
+    document.getElementById("score").innerText = score;
+    document.getElementById("nextBtn").style.display = "block";
+}
+
+function chooseMode(mode) {
+
+    gameMode = mode;
+
+    // Schritt 1 verstecken
+    document.getElementById("stepMode").style.display = "none";
+
+    // Schritt 2 anzeigen
+    document.getElementById("stepContinent").style.display = "block";
+}
+
+
+function openMenu() {
+
+    document.getElementById("overlay").style.display = "flex";
+
+    // Reset Flow
+    document.getElementById("stepMode").style.display = "block";
+    document.getElementById("stepContinent").style.display = "none";
+}
+
+function next() {
+    currentIndex++;
+    nextQuestion();
 }
