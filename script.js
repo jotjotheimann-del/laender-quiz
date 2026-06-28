@@ -221,16 +221,393 @@ let current;
 let score = 0;
 let answered = false;
 let gameMode = "hauptstadt";
+let currentStreakCount = 0;
+
+const STAT_KEY = "laenderQuizStatsV1";
+
+const continentNames = {
+    Europa: "Europa",
+    Amerika: "Amerika",
+    Afrika: "Afrika",
+    AsienOzeanien: "Asien + Ozeanien"
+};
+
+const achievements = [
+    {
+        id: "beginner",
+        title: "Anfänger",
+        text: "10 richtige Antworten",
+        check: stats => stats.totalCorrect >= 10
+    },
+    {
+        id: "countryExpert",
+        title: "Länder-Kenner",
+        text: "100 richtige Antworten",
+        check: stats => stats.totalCorrect >= 100
+    },
+    {
+        id: "geoPro",
+        title: "Geografie-Profi",
+        text: "500 richtige Antworten",
+        check: stats => stats.totalCorrect >= 500
+    },
+    {
+        id: "worldTraveler",
+        title: "Weltreisender",
+        text: "Alle Länder mindestens einmal richtig beantwortet",
+        check: stats => getAllLearnedCountries(stats).size >= countries.length
+    },
+    {
+        id: "europeMaster",
+        title: "Europa-Meister",
+        text: "Alle Länder Europas geschafft",
+        check: stats => hasLearnedContinent(stats, "Europa")
+    },
+    {
+        id: "americaMaster",
+        title: "Amerika-Meister",
+        text: "Alle Länder Amerikas geschafft",
+        check: stats => hasLearnedContinent(stats, "Amerika")
+    },
+    {
+        id: "africaMaster",
+        title: "Afrika-Meister",
+        text: "Alle Länder Afrikas geschafft",
+        check: stats => hasLearnedContinent(stats, "Afrika")
+    },
+    {
+        id: "asiaOceaniaMaster",
+        title: "Asien + Ozeanien-Meister",
+        text: "Alle Länder aus Asien + Ozeanien geschafft",
+        check: stats => hasLearnedContinent(stats, "AsienOzeanien")
+    }
+];
+
+function getEmptyStats() {
+    return {
+        xp: 0,
+        level: 1,
+        totalCorrect: 0,
+        bestStreak: 0,
+        unlockedAchievements: [],
+        weaknesses: {},
+        modes: {
+            hauptstadt: {},
+            flagge: {}
+        }
+    };
+}
+
+function loadStats() {
+    const saved = localStorage.getItem(STAT_KEY);
+
+    if (!saved) return getEmptyStats();
+
+    try {
+        const stats = JSON.parse(saved);
+        const empty = getEmptyStats();
+
+        return {
+            ...empty,
+            ...stats,
+            modes: {
+                hauptstadt: stats.modes?.hauptstadt || {},
+                flagge: stats.modes?.flagge || {}
+            },
+            unlockedAchievements: stats.unlockedAchievements || [],
+            weaknesses: stats.weaknesses || {}
+        };
+    } catch (error) {
+        return getEmptyStats();
+    }
+}
+
+function saveStats(stats) {
+    localStorage.setItem(STAT_KEY, JSON.stringify(stats));
+}
+
+function xpNeededForNextLevel(level) {
+    return level * 100;
+}
+
+function calculateLevel(totalXp) {
+    let level = 1;
+    let xpLeft = totalXp;
+
+    while (xpLeft >= xpNeededForNextLevel(level)) {
+        xpLeft -= xpNeededForNextLevel(level);
+        level++;
+    }
+
+    return level;
+}
+
+function getXpInCurrentLevel(totalXp, level) {
+    let usedXp = 0;
+
+    for (let i = 1; i < level; i++) {
+        usedXp += xpNeededForNextLevel(i);
+    }
+
+    return totalXp - usedXp;
+}
+
+function addXp(stats, amount) {
+    const oldLevel = stats.level;
+
+    stats.xp += amount;
+    stats.level = calculateLevel(stats.xp);
+
+    if (stats.level > oldLevel) {
+        showMessage("🎉 Level " + stats.level + " erreicht!");
+    }
+}
+
+function showMessage(text) {
+    const message = document.getElementById("levelUpMessage");
+
+    if (!message) return;
+
+    message.innerText = text;
+
+    setTimeout(() => {
+        message.innerText = "";
+    }, 2500);
+}
+
+function getContinentStats(stats, mode, continent) {
+    if (!stats.modes[mode][continent]) {
+        stats.modes[mode][continent] = {
+            answered: 0,
+            correct: 0,
+            learnedCountries: []
+        };
+    }
+
+    return stats.modes[mode][continent];
+}
+
+function recordAnswer(isCorrect) {
+    const stats = loadStats();
+    const modeStats = getContinentStats(stats, gameMode, current.kontinent);
+
+    modeStats.answered++;
+
+    if (isCorrect) {
+        modeStats.correct++;
+        stats.totalCorrect++;
+        currentStreakCount++;
+
+        addXp(stats, 10);
+
+        if (!modeStats.learnedCountries.includes(current.land)) {
+            modeStats.learnedCountries.push(current.land);
+        }
+
+        if (currentStreakCount > stats.bestStreak) {
+            stats.bestStreak = currentStreakCount;
+        }
+    } else {
+        currentStreakCount = 0;
+        recordWeakness(stats);
+    }
+
+    checkAchievements(stats);
+    saveStats(stats);
+    renderStats();
+}
+
+function recordWeakness(stats) {
+    if (!stats.weaknesses[current.land]) {
+        stats.weaknesses[current.land] = {
+            land: current.land,
+            kontinent: current.kontinent,
+            mistakes: 0
+        };
+    }
+
+    stats.weaknesses[current.land].mistakes++;
+}
+
+function getAllLearnedCountries(stats) {
+    const learned = new Set();
+
+    Object.values(stats.modes).forEach(mode => {
+        Object.values(mode).forEach(continent => {
+            continent.learnedCountries?.forEach(land => learned.add(land));
+        });
+    });
+
+    return learned;
+}
+
+function hasLearnedContinent(stats, continent) {
+    const learned = getAllLearnedCountries(stats);
+    const continentCountries = countries.filter(country => country.kontinent === continent);
+
+    return continentCountries.every(country => learned.has(country.land));
+}
+
+function checkAchievements(stats) {
+    achievements.forEach(achievement => {
+        const alreadyUnlocked = stats.unlockedAchievements.includes(achievement.id);
+
+        if (!alreadyUnlocked && achievement.check(stats)) {
+            stats.unlockedAchievements.push(achievement.id);
+            showMessage("🏆 Erfolg freigeschaltet: " + achievement.title);
+        }
+    });
+}
+
+function getContinentTotal(continent) {
+    return countries.filter(country => country.kontinent === continent).length;
+}
+
+function createProgressRow(mode, continent) {
+    const stats = loadStats();
+    const continentStats = getContinentStats(stats, mode, continent);
+    const total = getContinentTotal(continent);
+    const learned = continentStats.learnedCountries.length;
+    const percent = total === 0 ? 0 : Math.round((learned / total) * 100);
+    const accuracy = continentStats.answered === 0
+        ? 0
+        : Math.round((continentStats.correct / continentStats.answered) * 100);
+
+    return `
+        <div class="statRow">
+            <div class="statTopline">
+                <span>${continentNames[continent]}</span>
+                <strong>${percent}%</strong>
+            </div>
+
+            <div class="progressBar">
+                <div class="progressFill" style="width: ${percent}%"></div>
+            </div>
+
+            <small>${learned} von ${total} Ländern gelernt · Trefferquote: ${accuracy}%</small>
+        </div>
+    `;
+}
+
+function renderPlayerProgress(stats) {
+    const playerLevel = document.getElementById("playerLevel");
+    const xpMissing = document.getElementById("xpMissing");
+    const xpFill = document.getElementById("xpFill");
+    const scoreDisplay = document.getElementById("score");
+
+    const xpInLevel = getXpInCurrentLevel(stats.xp, stats.level);
+    const needed = xpNeededForNextLevel(stats.level);
+    const missing = needed - xpInLevel;
+    const percent = Math.round((xpInLevel / needed) * 100);
+
+    if (playerLevel) playerLevel.innerText = stats.level;
+    if (xpMissing) xpMissing.innerText = missing + " XP bis Level " + (stats.level + 1);
+    if (xpFill) xpFill.style.width = percent + "%";
+    if (scoreDisplay) scoreDisplay.innerText = currentStreakCount;
+}
+
+function renderAchievements(stats) {
+    const box = document.getElementById("achievementsList");
+
+    if (!box) return;
+
+    box.innerHTML = achievements.map(achievement => {
+        const unlocked = stats.unlockedAchievements.includes(achievement.id);
+
+        return `
+            <div class="achievement ${unlocked ? "" : "locked"}">
+                <strong>${unlocked ? "🏆" : "🔒"} ${achievement.title}</strong>
+                <small>${achievement.text}</small>
+            </div>
+        `;
+    }).join("");
+}
+
+function renderWeaknesses(stats) {
+    const box = document.getElementById("weaknessList");
+
+    if (!box) return;
+
+    const weaknesses = Object.values(stats.weaknesses)
+        .sort((a, b) => b.mistakes - a.mistakes)
+        .slice(0, 10);
+
+    if (weaknesses.length === 0) {
+        box.innerHTML = "<p>Noch keine Schwächen gespeichert.</p>";
+        return;
+    }
+
+    box.innerHTML = weaknesses.map(item => `
+        <div class="weaknessItem">
+            <span>${item.land}</span>
+            <span>${item.mistakes} Fehler</span>
+        </div>
+    `).join("");
+}
+
+function renderStats() {
+    const stats = loadStats();
+
+    const bestStreak = document.getElementById("bestStreak");
+    const capitalStats = document.getElementById("capitalStats");
+    const flagStats = document.getElementById("flagStats");
+
+    if (bestStreak) bestStreak.innerText = stats.bestStreak;
+
+    if (capitalStats) {
+        capitalStats.innerHTML = Object.keys(continentNames)
+            .map(continent => createProgressRow("hauptstadt", continent))
+            .join("");
+    }
+
+    if (flagStats) {
+        flagStats.innerHTML = Object.keys(continentNames)
+            .map(continent => createProgressRow("flagge", continent))
+            .join("");
+    }
+
+    renderPlayerProgress(stats);
+    renderAchievements(stats);
+    renderWeaknesses(stats);
+}
+
+function resetStats() {
+    if (!confirm("Möchtest du deine Statistiken wirklich löschen?")) return;
+
+    localStorage.removeItem(STAT_KEY);
+    currentStreakCount = 0;
+    renderStats();
+}
+
+function startWeaknessQuiz() {
+    const stats = loadStats();
+
+    const weaknessCountries = Object.values(stats.weaknesses)
+        .sort((a, b) => b.mistakes - a.mistakes)
+        .map(item => countries.find(country => country.land === item.land))
+        .filter(Boolean);
+
+    if (weaknessCountries.length === 0) {
+        alert("Du hast noch keine gespeicherten Schwächen.");
+        return;
+    }
+
+    quizCountries = shuffle([...weaknessCountries]);
+    currentIndex = 0;
+    score = 0;
+
+    document.getElementById("overlay").style.display = "none";
+
+    nextQuestion();
+}
 
 function goBack() {
     document.getElementById("stepContinent").style.display = "none";
     document.getElementById("stepMode").style.display = "block";
+    document.getElementById("statsBox").style.display = "block";
+    document.getElementById("achievementsBox").style.display = "block";
+    document.getElementById("weaknessBox").style.display = "block";
 }
-
-function openMenu() {
-    document.getElementById("overlay").style.display = "flex";
-}
-
 
 function selectContinent(continent) {
 
@@ -252,13 +629,13 @@ function selectContinent(continent) {
     quizCountries = shuffle([...list]);
     currentIndex = 0;
     score = 0;
-    document.getElementById("score").innerText = score;
+
+    renderStats();
 
     document.getElementById("overlay").style.display = "none";
 
     nextQuestion();
 }
-
 
 function nextQuestion() {
 
@@ -269,7 +646,6 @@ function nextQuestion() {
 
     current = quizCountries[currentIndex];
 
-    // RESET UI
     const result = document.getElementById("result");
     result.innerText = "";
     result.className = "";
@@ -286,7 +662,6 @@ function nextQuestion() {
 
     answered = false;
 
-    // MODUS: Hauptstadt
     if (gameMode === "hauptstadt") {
 
         document.getElementById("flag").style.display = "block";
@@ -294,13 +669,9 @@ function nextQuestion() {
         document.getElementById("choices").style.display = "none";
 
         document.getElementById("flag").src = current.flag;
-        document.getElementById("country").innerText =
-             current.land;
+        document.getElementById("country").innerText = current.land;
 
-    }
-
-    // MODUS: Flagge
-    else if (gameMode === "flagge") {
+    } else if (gameMode === "flagge") {
 
         document.getElementById("flag").style.display = "block";
         document.getElementById("answer").style.display = "none";
@@ -316,7 +687,6 @@ function nextQuestion() {
     }
 }
 
-
 function checkAnswer() {
 
     if (answered) return;
@@ -330,30 +700,34 @@ function checkAnswer() {
 
     let isCorrect = false;
 
-    // 🔥 mehrere Hauptstädte möglich
     if (Array.isArray(correct)) {
 
         isCorrect = correct.some(city =>
-            city.toLowerCase() === user
+            city.trim().toLowerCase() === user
         );
 
     } else {
 
-        isCorrect = user === correct.toLowerCase();
+        isCorrect = user === correct.trim().toLowerCase();
     }
 
     if (isCorrect) {
 
         score++;
-        const r1 = document.getElementById("result"); r1.innerText = "✅ Richtig!"; r1.className = "correct";
+
+        const r1 = document.getElementById("result");
+        r1.innerText = "✅ Richtig!";
+        r1.className = "correct";
 
     } else {
 
-        document.getElementById("result").innerText =
-            "❌ Richtig: " + (Array.isArray(correct) ? correct.join(", ") : correct); document.getElementById("result").className = "wrong";
+        const r2 = document.getElementById("result");
+        r2.innerText =
+            "❌ Richtig: " + (Array.isArray(correct) ? correct.join(", ") : correct);
+        r2.className = "wrong";
     }
 
-    document.getElementById("score").innerText = score;
+    recordAnswer(isCorrect);
 
     answered = true;
 
@@ -416,12 +790,21 @@ function checkChoice(choice) {
 
     answered = true;
 
-    if (choice === current.land) {
+    const isCorrect = choice === current.land;
+
+    if (isCorrect) {
         score++;
-        const r1 = document.getElementById("result"); r1.innerText = "✅ Richtig!"; r1.className = "correct";
+
+        const r1 = document.getElementById("result");
+        r1.innerText = "✅ Richtig!";
+        r1.className = "correct";
     } else {
-        const r2 = document.getElementById("result"); r2.innerText = "❌ Richtig: " + current.land; r2.className = "wrong";
+        const r2 = document.getElementById("result");
+        r2.innerText = "❌ Richtig: " + current.land;
+        r2.className = "wrong";
     }
+
+    recordAnswer(isCorrect);
 
     document.querySelectorAll(".choiceBtn").forEach(btn => {
         btn.disabled = true;
@@ -433,7 +816,6 @@ function checkChoice(choice) {
         }
     });
 
-    document.getElementById("score").innerText = score;
     document.getElementById("nextBtn").style.display = "block";
 }
 
@@ -441,20 +823,23 @@ function chooseMode(mode) {
 
     gameMode = mode;
 
-    // Schritt 1 verstecken
     document.getElementById("stepMode").style.display = "none";
-
-    // Schritt 2 anzeigen
+    document.getElementById("statsBox").style.display = "none";
+    document.getElementById("achievementsBox").style.display = "none";
+    document.getElementById("weaknessBox").style.display = "none";
     document.getElementById("stepContinent").style.display = "block";
 }
 
-
 function openMenu() {
+
+    renderStats();
 
     document.getElementById("overlay").style.display = "flex";
 
-    // Reset Flow
     document.getElementById("stepMode").style.display = "block";
+    document.getElementById("statsBox").style.display = "block";
+    document.getElementById("achievementsBox").style.display = "block";
+    document.getElementById("weaknessBox").style.display = "block";
     document.getElementById("stepContinent").style.display = "none";
 }
 
@@ -462,3 +847,5 @@ function next() {
     currentIndex++;
     nextQuestion();
 }
+
+renderStats();

@@ -9,17 +9,14 @@
 </head>
 <body>
 
-    <!-- Menü Button -->
     <button id="menuBtn" onclick="openMenu()">☰</button>
 
-    <!-- Overlay -->
     <div id="overlay">
 
         <div id="menuBox">
 
             <h1>🌍 Länder Quiz</h1>
 
-            <!-- Schritt 1 -->
             <div id="stepMode">
 
                 <h2>Spielmodus wählen</h2>
@@ -34,7 +31,43 @@
 
             </div>
 
-            <!-- Schritt 2 -->
+            <div id="statsBox">
+                <h2>Deine Statistiken</h2>
+
+                <div class="streakCard">
+                    🔥 Beste Streak:
+                    <strong id="bestStreak">0</strong>
+                </div>
+
+                <div class="statsMode">
+                    <h3>🏙️ Hauptstädte</h3>
+                    <div id="capitalStats"></div>
+                </div>
+
+                <div class="statsMode">
+                    <h3>🏳️ Flaggen</h3>
+                    <div id="flagStats"></div>
+                </div>
+
+                <button id="resetStatsBtn" onclick="resetStats()">
+                    Statistiken zurücksetzen
+                </button>
+            </div>
+
+            <div id="achievementsBox">
+                <h2>Erfolge</h2>
+                <div id="achievementsList"></div>
+            </div>
+
+            <div id="weaknessBox">
+                <h2>Meine Schwächen</h2>
+                <div id="weaknessList"></div>
+
+                <button onclick="startWeaknessQuiz()">
+                    Schwächen üben
+                </button>
+            </div>
+
             <div id="stepContinent" style="display:none;">
 
                 <h2>Kontinent wählen</h2>
@@ -59,14 +92,30 @@
                     🌐 Ganze Welt
                 </button>
 
+                <button onclick="goBack()">
+                    Zurück
+                </button>
+
             </div>
 
         </div>
 
     </div>
 
-    <!-- Quiz -->
     <div class="container">
+
+        <div id="playerProgress">
+            <div id="levelInfo">
+                <strong>Level <span id="playerLevel">1</span></strong>
+                <span id="xpMissing">100 XP bis Level 2</span>
+            </div>
+
+            <div class="xpBar">
+                <div id="xpFill"></div>
+            </div>
+
+            <div id="levelUpMessage"></div>
+        </div>
 
         <div id="flagWrap">
             <img id="flag" src="" alt="Flagge">
@@ -93,7 +142,7 @@
         <p id="result"></p>
 
         <div id="scoreContainer">
-            Punkte:
+            Aktuelle Streak:
             <span id="score">0</span>
         </div>
 
