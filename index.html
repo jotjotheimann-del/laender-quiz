@@ -3,74 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌍 Länder Quiz</title>
+    <title>GeoMaster - Länder Quiz</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <button id="menuBtn" onclick="openMenu()">☰</button>
+    <div id="appShell">
 
-    <div id="overlay">
-
-        <div id="menuBox">
-
-            <h1>🌍 Länder Quiz</h1>
-
-            <div id="stepMode">
-
-                <h2>Spielmodus wählen</h2>
-
-                <button onclick="chooseMode('hauptstadt')">
-                    🏙️ Hauptstadt
-                </button>
-
-                <button onclick="chooseMode('flagge')">
-                    🏳️ Flaggen
-                </button>
-
+        <header class="appHeader">
+            <div class="brand">
+                <div class="brandIcon">🌍</div>
+                <div>
+                    <h1>GeoMaster</h1>
+                    <p>Länder, Flaggen & Hauptstädte lernen</p>
+                </div>
             </div>
 
-            <div id="statsBox">
-                <h2>Deine Statistiken</h2>
+            <nav class="topNav">
+                <button class="navButton" onclick="showLexicon()">📚 Lexikon</button>
+                <button class="navButton" onclick="showProfile()">👤 Profil</button>
+                <button class="menuCircle" onclick="openMenu()" aria-label="Menü öffnen">☰</button>
+            </nav>
+        </header>
 
-                <div class="streakCard">
-                    🔥 Beste Streak:
-                    <strong id="bestStreak">0</strong>
+        <main class="appMain">
+
+            <section id="homeView" class="view activeView">
+                <div class="heroPanel">
+                    <div class="heroText">
+                        <span class="eyebrow">Heute lernen</span>
+                        <h2 id="homeTitle">Bereit für deine nächste Runde?</h2>
+                        <p id="homeSubtitle">Wähle im Menü einen Modus und trainiere gezielt Länder, Flaggen und Hauptstädte.</p>
+                    </div>
+
+                    <div class="dailyPreview">
+                        <h3>🎯 Tagesaufgaben</h3>
+                        <div id="dailyPreviewList"></div>
+                    </div>
                 </div>
 
-                <div class="statsMode">
-                    <h3>🏙️ Hauptstädte</h3>
-                    <div id="capitalStats"></div>
+                <div class="quickStatsGrid">
+                    <article class="quickStat">
+                        <span>Level</span>
+                        <strong id="homeLevel">1</strong>
+                    </article>
+
+                    <article class="quickStat">
+                        <span>XP</span>
+                        <strong id="homeXp">0</strong>
+                    </article>
+
+                    <article class="quickStat">
+                        <span>Streak</span>
+                        <strong id="homeDailyStreak">0</strong>
+                    </article>
+
+                    <article class="quickStat">
+                        <span>Gelernt</span>
+                        <strong id="homeLearned">0</strong>
+                    </article>
                 </div>
 
-                <div class="statsMode">
-                    <h3>🏳️ Flaggen</h3>
-                    <div id="flagStats"></div>
-                </div>
+                <section class="centerStage">
+                    <div class="modeHint">
+                        <h3>Starte ein Quiz</h3>
+                        <p>Tippe oben rechts auf Menü und wähle Modus, Variante und Kontinent.</p>
+                        <button class="primaryAction" onclick="openMenu()">Quiz auswählen</button>
+                    </div>
+                </section>
+            </section>
 
-                <button id="resetStatsBtn" onclick="resetStats()">
-                    Statistiken zurücksetzen
+            <section id="quizView" class="view">
+                <div class="quizCard">
+                    <div id="playerProgress" class="playerProgress">
+                        <div id="levelInfo">
+                            <strong>Level <span id="playerLevel">1</span></strong>
+                            <span id="xpMissing">100 XP bis Level 2</span>
+                        </div>
+
+                        <div class="xpBar">
+                            <div id="xpFill"></div>
+                        </div>
+                    </div>
+
+                    <div class="quizMeta">
+                        <span id="modeLabel">Quiz</span>
+                        <span>Serie: <strong id="score">0</strong></span>
+                    </div>
+
+                    <div id="lifeBar" class="lifeBar" style="display:none;"></div>
+
+                    <div id="timerBar" class="timerBar" style="display:none;">
+                        <span id="timerText">60s</span>
+                        <div class="timerTrack">
+                            <div id="timerFill"></div>
+                        </div>
+                    </div>
+
+                    <div id="flagWrap">
+                        <img id="flag" src="" alt="Flagge">
+                    </div>
+
+                    <h2 id="country"></h2>
+
+                    <input
+                        type="text"
+                        id="answer"
+                        placeholder="Antwort eingeben..."
+                        autocomplete="off"
+                    >
+
+                    <div id="choices" style="display:none;"></div>
+
+                    <button id="checkBtn" class="primaryAction" onclick="checkAnswer()">
+                        Prüfen
+                    </button>
+
+                    <button id="nextBtn" class="successAction" onclick="next()" style="display:none;">
+                        Weiter
+                    </button>
+
+                    <p id="result"></p>
+                </div>
+            </section>
+
+            <section id="profileView" class="view">
+                <div class="pagePanel">
+                    <div class="sectionHeader">
+                        <div>
+                            <span class="eyebrow">Dein Fortschritt</span>
+                            <h2>👤 Profil</h2>
+                        </div>
+                        <button class="ghostButton" onclick="showHome()">Schließen</button>
+                    </div>
+
+                    <div class="profileHero">
+                        <div class="levelBadge">
+                            <span>Level</span>
+                            <strong id="profileLevel">1</strong>
+                        </div>
+
+                        <div class="profileProgress">
+                            <h3 id="profileXpText">0 XP</h3>
+                            <div class="xpBar">
+                                <div id="profileXpFill"></div>
+                            </div>
+                            <p id="profileXpMissing">100 XP bis Level 2</p>
+                        </div>
+                    </div>
+
+                    <div class="profileStatsGrid">
+                        <article><span>Beantwortet</span><strong id="profileAnswered">0</strong></article>
+                        <article><span>Richtig</span><strong id="profileCorrect">0</strong></article>
+                        <article><span>Trefferquote</span><strong id="profileAccuracy">0%</strong></article>
+                        <article><span>Gute Länder</span><strong id="profileLearned">0</strong></article>
+                        <article><span>Aktuelle Serie</span><strong id="profileCurrentRun">0</strong></article>
+                        <article><span>Tages-Streak</span><strong id="profileDayStreak">0</strong></article>
+                        <article><span>Beste Tages-Streak</span><strong id="profileBestDayStreak">0</strong></article>
+                        <article><span>Erfolge</span><strong id="profileAchievements">0</strong></article>
+                    </div>
+
+                    <section class="subSection">
+                        <h3>🌍 Fortschritt nach Kontinent</h3>
+                        <div id="continentProgressList"></div>
+                    </section>
+
+                    <section class="subSection">
+                        <h3>🎯 Tagesaufgaben</h3>
+                        <div id="dailyTasksList"></div>
+                    </section>
+
+                    <section class="subSection">
+                        <h3>🏆 Erfolge</h3>
+                        <div id="achievementsList"></div>
+                    </section>
+
+                    <section class="subSection">
+                        <h3>Meine Schwächen</h3>
+                        <div id="weaknessList"></div>
+                        <button class="primaryAction" onclick="startWeaknessQuiz()">Schwächen üben</button>
+                    </section>
+
+                    <button id="resetStatsBtn" onclick="resetStats()">
+                        Statistiken zurücksetzen
+                    </button>
+                </div>
+            </section>
+
+            <section id="lexiconView" class="view">
+                <div class="pagePanel">
+                    <div class="sectionHeader">
+                        <div>
+                            <span class="eyebrow">Nachschlagen & üben</span>
+                            <h2>📚 Lexikon</h2>
+                        </div>
+                        <button class="ghostButton" onclick="showHome()">Schließen</button>
+                    </div>
+
+                    <div class="lexiconControls">
+                        <input
+                            type="text"
+                            id="lexiconSearch"
+                            placeholder="Land suchen..."
+                            oninput="renderLexicon()"
+                        >
+
+                        <select id="lexiconFilter" onchange="renderLexicon()">
+                            <option value="Welt">Ganze Welt</option>
+                            <option value="Europa">Europa</option>
+                            <option value="Amerika">Amerika</option>
+                            <option value="Afrika">Afrika</option>
+                            <option value="AsienOzeanien">Asien + Ozeanien</option>
+                        </select>
+                    </div>
+
+                    <div id="lexiconList" class="lexiconList"></div>
+                </div>
+            </section>
+
+            <section id="countryDetailView" class="view">
+                <div class="pagePanel detailPanel">
+                    <button class="ghostButton" onclick="showLexicon()">Zurück zum Lexikon</button>
+
+                    <div id="countryDetailContent"></div>
+                </div>
+            </section>
+
+            <section id="resultView" class="view">
+                <div class="pagePanel resultPanel">
+                    <h2 id="roundResultTitle">Runde beendet</h2>
+                    <div id="roundResultStats" class="profileStatsGrid"></div>
+                    <button class="primaryAction" onclick="openMenu()">Neue Runde</button>
+                    <button class="ghostButton" onclick="showHome()">Zur Startseite</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="menuOverlay" class="menuOverlay" style="display:none;">
+        <div class="menuBackdrop" onclick="closeMenu()"></div>
+
+        <aside class="menuPanel">
+            <div class="sectionHeader">
+                <div>
+                    <span class="eyebrow">Quiz auswählen</span>
+                    <h2>☰ Menü</h2>
+                </div>
+                <button class="menuClose" onclick="closeMenu()" aria-label="Menü schließen">×</button>
+            </div>
+
+            <div id="menuStepMode" class="menuStep">
+                <h3>Spielmodus</h3>
+
+                <button onclick="chooseMode('capitalCountryToCapital')">
+                    🏙️ Land → Hauptstadt
+                </button>
+
+                <button onclick="chooseMode('capitalCapitalToCountry')">
+                    🏙️ Hauptstadt → Land
+                </button>
+
+                <button onclick="chooseMode('flagCountry')">
+                    🏳️ Flagge → Land
+                </button>
+
+                <button onclick="chooseMode('countryFlag')">
+                    🏳️ Land → Flagge
+                </button>
+
+                <button onclick="chooseMode('time')">
+                    ⏱️ Zeit-Challenge
+                </button>
+
+                <button onclick="chooseMode('lives')">
+                    ❤️ Leben-Modus
                 </button>
             </div>
 
-            <div id="achievementsBox">
-                <h2>Erfolge</h2>
-                <div id="achievementsList"></div>
-            </div>
+            <div id="menuStepAnswer" class="menuStep" style="display:none;">
+                <h3>Antwortart</h3>
 
-            <div id="weaknessBox">
-                <h2>Meine Schwächen</h2>
-                <div id="weaknessList"></div>
+                <button onclick="chooseAnswerType('input')">
+                    Eingabe
+                </button>
 
-                <button onclick="startWeaknessQuiz()">
-                    Schwächen üben
+                <button onclick="chooseAnswerType('choice')">
+                    Multiple Choice
+                </button>
+
+                <button onclick="backToModeStep()">
+                    Zurück
                 </button>
             </div>
 
-            <div id="stepContinent" style="display:none;">
+            <div id="menuStepTime" class="menuStep" style="display:none;">
+                <h3>Zeit wählen</h3>
 
-                <h2>Kontinent wählen</h2>
+                <button onclick="chooseTimeLimit(30)">
+                    30 Sekunden
+                </button>
+
+                <button onclick="chooseTimeLimit(60)">
+                    60 Sekunden
+                </button>
+
+                <button onclick="chooseTimeLimit(120)">
+                    120 Sekunden
+                </button>
+
+                <button onclick="backToModeStep()">
+                    Zurück
+                </button>
+            </div>
+
+            <div id="menuStepContinent" class="menuStep" style="display:none;">
+                <h3>Kontinent</h3>
 
                 <button onclick="selectContinent('Europa')">
                     🇪🇺 Europa
@@ -92,63 +341,23 @@
                     🌐 Ganze Welt
                 </button>
 
-                <button onclick="goBack()">
+                <button onclick="backToAnswerStep()">
                     Zurück
                 </button>
-
             </div>
-
-        </div>
-
+        </aside>
     </div>
 
-    <div class="container">
+    <div id="toastStack" class="toastStack"></div>
 
-        <div id="playerProgress">
-            <div id="levelInfo">
-                <strong>Level <span id="playerLevel">1</span></strong>
-                <span id="xpMissing">100 XP bis Level 2</span>
-            </div>
-
-            <div class="xpBar">
-                <div id="xpFill"></div>
-            </div>
-
-            <div id="levelUpMessage"></div>
+    <div id="levelUpOverlay" class="levelUpOverlay" style="display:none;">
+        <div class="levelUpCard">
+            <span>🎉</span>
+            <h2 id="levelUpTitle">Level Up!</h2>
+            <p id="levelUpText">Level 2 erreicht</p>
         </div>
-
-        <div id="flagWrap">
-            <img id="flag" src="" alt="Flagge">
-        </div>
-
-        <h2 id="country"></h2>
-
-        <input
-            type="text"
-            id="answer"
-            placeholder="Hauptstadt eingeben..."
-        >
-
-        <div id="choices" style="display:none;"></div>
-
-        <button id="checkBtn" onclick="checkAnswer()">
-            Prüfen
-        </button>
-
-        <button id="nextBtn" onclick="next()" style="display:none;">
-            Weiter
-        </button>
-
-        <p id="result"></p>
-
-        <div id="scoreContainer">
-            Aktuelle Streak:
-            <span id="score">0</span>
-        </div>
-
     </div>
 
     <script src="script.js"></script>
-
 </body>
 </html>
