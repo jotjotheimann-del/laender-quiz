@@ -12,17 +12,18 @@
     <div id="appShell">
 
         <header class="appHeader">
-            <div class="brand">
+            <div class="brand" onclick="showHome()">
                 <div class="brandIcon">🌍</div>
                 <div>
                     <h1>GeoMaster</h1>
-                    <p>Länder, Flaggen & Hauptstädte lernen</p>
+                    <p>Geografie lernen wie ein Spiel</p>
                 </div>
             </div>
 
             <nav class="topNav">
                 <button class="navButton" onclick="showLexicon()">📚 Lexikon</button>
                 <button class="navButton" onclick="showProfile()">👤 Profil</button>
+                <button class="navButton" onclick="showLeaderboard()">🏆 Rangliste</button>
                 <button class="menuCircle" onclick="openMenu()" aria-label="Menü öffnen">☰</button>
             </nav>
         </header>
@@ -33,50 +34,52 @@
                 <div class="heroPanel">
                     <div class="heroText">
                         <span class="eyebrow">Heute lernen</span>
-                        <h2 id="homeTitle">Bereit für deine nächste Runde?</h2>
-                        <p id="homeSubtitle">Wähle im Menü einen Modus und trainiere gezielt Länder, Flaggen und Hauptstädte.</p>
+                        <h2>Bereit für deine nächste Runde?</h2>
+                        <p>
+                            Trainiere Flaggen, Hauptstädte, Fakten, Einwohnerzahlen und Länderumrisse.
+                        </p>
+
+                        <div class="heroActions">
+                            <button class="primaryAction" onclick="openMenu()">Quiz starten</button>
+                            <button class="ghostButton" onclick="showLeaderboard()">Rangliste ansehen</button>
+                        </div>
                     </div>
 
                     <div class="dailyPreview">
-                        <h3>🎯 Tagesaufgaben</h3>
-                        <div id="dailyPreviewList"></div>
+                        <h3>🎯 Fortschritt</h3>
+                        <div class="miniStats">
+                            <article><span>Level</span><strong id="homeLevel">1</strong></article>
+                            <article><span>XP</span><strong id="homeXp">0</strong></article>
+                            <article><span>Richtig</span><strong id="homeCorrect">0</strong></article>
+                            <article><span>Combo</span><strong id="homeCombo">0</strong></article>
+                        </div>
                     </div>
                 </div>
 
-                <div class="quickStatsGrid">
-                    <article class="quickStat">
-                        <span>Level</span>
-                        <strong id="homeLevel">1</strong>
+                <div class="dashboardGrid">
+                    <article class="dashboardCard">
+                        <h3>📚 Lexikon</h3>
+                        <p>Alle Länder mit Einwohnerzahl, Fläche, Währung, Sprachen und größter Stadt.</p>
+                        <button class="ghostButton" onclick="showLexicon()">Öffnen</button>
                     </article>
 
-                    <article class="quickStat">
-                        <span>XP</span>
-                        <strong id="homeXp">0</strong>
+                    <article class="dashboardCard">
+                        <h3>🗺️ Umrisse</h3>
+                        <p>Errate Länder anhand ihres Umrisses und der Hauptstadtposition.</p>
+                        <button class="ghostButton" onclick="openMenu()">Spielen</button>
                     </article>
 
-                    <article class="quickStat">
-                        <span>Streak</span>
-                        <strong id="homeDailyStreak">0</strong>
-                    </article>
-
-                    <article class="quickStat">
-                        <span>Gelernt</span>
-                        <strong id="homeLearned">0</strong>
+                    <article class="dashboardCard">
+                        <h3>🏆 Rangliste</h3>
+                        <p>Vergleiche Spieler und sortiere Länder nach Größe, Einwohnerzahl und mehr.</p>
+                        <button class="ghostButton" onclick="showLeaderboard()">Ansehen</button>
                     </article>
                 </div>
-
-                <section class="centerStage">
-                    <div class="modeHint">
-                        <h3>Starte ein Quiz</h3>
-                        <p>Tippe oben rechts auf Menü und wähle Modus, Variante und Kontinent.</p>
-                        <button class="primaryAction" onclick="openMenu()">Quiz auswählen</button>
-                    </div>
-                </section>
             </section>
 
             <section id="quizView" class="view">
                 <div class="quizCard">
-                    <div id="playerProgress" class="playerProgress">
+                    <div class="playerProgress">
                         <div id="levelInfo">
                             <strong>Level <span id="playerLevel">1</span></strong>
                             <span id="xpMissing">100 XP bis Level 2</span>
@@ -89,7 +92,7 @@
 
                     <div class="quizMeta">
                         <span id="modeLabel">Quiz</span>
-                        <span>Serie: <strong id="score">0</strong></span>
+                        <span>🔥 <strong id="comboDisplay">0</strong></span>
                     </div>
 
                     <div id="lifeBar" class="lifeBar" style="display:none;"></div>
@@ -103,6 +106,10 @@
 
                     <div id="flagWrap">
                         <img id="flag" src="" alt="Flagge">
+                    </div>
+
+                    <div id="outlineWrap" style="display:none;">
+                        <canvas id="outlineCanvas" width="420" height="300"></canvas>
                     </div>
 
                     <h2 id="country"></h2>
@@ -157,26 +164,12 @@
                         <article><span>Beantwortet</span><strong id="profileAnswered">0</strong></article>
                         <article><span>Richtig</span><strong id="profileCorrect">0</strong></article>
                         <article><span>Trefferquote</span><strong id="profileAccuracy">0%</strong></article>
-                        <article><span>Gute Länder</span><strong id="profileLearned">0</strong></article>
-                        <article><span>Aktuelle Serie</span><strong id="profileCurrentRun">0</strong></article>
-                        <article><span>Tages-Streak</span><strong id="profileDayStreak">0</strong></article>
-                        <article><span>Beste Tages-Streak</span><strong id="profileBestDayStreak">0</strong></article>
-                        <article><span>Erfolge</span><strong id="profileAchievements">0</strong></article>
+                        <article><span>Beste Combo</span><strong id="profileBestCombo">0</strong></article>
                     </div>
 
                     <section class="subSection">
                         <h3>🌍 Fortschritt nach Kontinent</h3>
                         <div id="continentProgressList"></div>
-                    </section>
-
-                    <section class="subSection">
-                        <h3>🎯 Tagesaufgaben</h3>
-                        <div id="dailyTasksList"></div>
-                    </section>
-
-                    <section class="subSection">
-                        <h3>🏆 Erfolge</h3>
-                        <div id="achievementsList"></div>
                     </section>
 
                     <section class="subSection">
@@ -195,7 +188,7 @@
                 <div class="pagePanel">
                     <div class="sectionHeader">
                         <div>
-                            <span class="eyebrow">Nachschlagen & üben</span>
+                            <span class="eyebrow">Länder entdecken</span>
                             <h2>📚 Lexikon</h2>
                         </div>
                         <button class="ghostButton" onclick="showHome()">Schließen</button>
@@ -225,8 +218,79 @@
             <section id="countryDetailView" class="view">
                 <div class="pagePanel detailPanel">
                     <button class="ghostButton" onclick="showLexicon()">Zurück zum Lexikon</button>
-
                     <div id="countryDetailContent"></div>
+                </div>
+            </section>
+
+            <section id="leaderboardView" class="view">
+                <div class="pagePanel">
+                    <div class="sectionHeader">
+                        <div>
+                            <span class="eyebrow">Accounts & Rankings</span>
+                            <h2>🏆 Rangliste</h2>
+                        </div>
+                        <button class="ghostButton" onclick="showHome()">Schließen</button>
+                    </div>
+
+                    <section class="subSection">
+                        <h3>👤 Account</h3>
+
+                        <div class="accountBox">
+                            <input id="accountNameInput" type="text" placeholder="Name eingeben...">
+                            <button class="primaryAction" onclick="createOrSwitchAccount()">Account erstellen / wechseln</button>
+                            <p id="activeAccountText">Aktiver Account: Gast</p>
+                        </div>
+                    </section>
+
+                    <section class="subSection">
+                        <h3>Spieler-Rangliste</h3>
+
+                        <div class="leaderboardFilters">
+                            <select id="leaderboardType" onchange="renderLeaderboard()">
+                                <option value="totalCorrect">Meiste richtige Antworten</option>
+                                <option value="xp">Meiste XP</option>
+                                <option value="level">Höchstes Level</option>
+                                <option value="bestCombo">Beste Combo</option>
+                                <option value="Europa">Bester in Europa</option>
+                                <option value="Afrika">Bester in Afrika</option>
+                                <option value="Amerika">Bester in Amerika</option>
+                                <option value="AsienOzeanien">Bester in Asien + Ozeanien</option>
+                            </select>
+                        </div>
+
+                        <div id="leaderboardList" class="leaderboardList"></div>
+                    </section>
+
+                    <section class="subSection">
+                        <h3>🌍 Länder-Rangliste</h3>
+
+                        <div class="leaderboardFilters twoFilters">
+                            <select id="countryRankingType" onchange="renderCountryRanking()">
+                                <option value="population">Einwohnerzahl</option>
+                                <option value="area">Fläche</option>
+                                <option value="largestCity">Größte Stadt A-Z</option>
+                                <option value="currency">Währung A-Z</option>
+                            </select>
+
+                            <select id="countryRankingContinent" onchange="renderCountryRanking()">
+                                <option value="Welt">Ganze Welt</option>
+                                <option value="Europa">Europa</option>
+                                <option value="Amerika">Amerika</option>
+                                <option value="Afrika">Afrika</option>
+                                <option value="AsienOzeanien">Asien + Ozeanien</option>
+                            </select>
+                        </div>
+
+                        <div id="countryRankingList" class="leaderboardList"></div>
+                    </section>
+
+                    <section class="subSection">
+                        <h3>Online-Hinweis</h3>
+                        <p class="sectionText">
+                            Diese Accounts und Ranglisten sind lokal auf diesem Gerät gespeichert.
+                            Für echte Online-Accounts und globale Ranglisten brauchst du später ein Backend wie Firebase oder Supabase.
+                        </p>
+                    </section>
                 </div>
             </section>
 
@@ -257,93 +321,43 @@
             <div id="menuStepMode" class="menuStep">
                 <h3>Spielmodus</h3>
 
-                <button onclick="chooseMode('capitalCountryToCapital')">
-                    🏙️ Land → Hauptstadt
-                </button>
-
-                <button onclick="chooseMode('capitalCapitalToCountry')">
-                    🏙️ Hauptstadt → Land
-                </button>
-
-                <button onclick="chooseMode('flagCountry')">
-                    🏳️ Flagge → Land
-                </button>
-
-                <button onclick="chooseMode('countryFlag')">
-                    🏳️ Land → Flagge
-                </button>
-
-                <button onclick="chooseMode('time')">
-                    ⏱️ Zeit-Challenge
-                </button>
-
-                <button onclick="chooseMode('lives')">
-                    ❤️ Leben-Modus
-                </button>
+                <button onclick="chooseMode('capitalCountryToCapital')">🏙️ Land → Hauptstadt</button>
+                <button onclick="chooseMode('capitalCapitalToCountry')">🏙️ Hauptstadt → Land</button>
+                <button onclick="chooseMode('flagCountry')">🏳️ Flagge → Land</button>
+                <button onclick="chooseMode('countryFlag')">🏳️ Land → Flagge</button>
+                <button onclick="chooseMode('facts')">🧠 Fakten-Quiz</button>
+                <button onclick="chooseMode('population')">👥 Einwohner-Raten</button>
+                <button onclick="chooseMode('outline')">🗺️ Länderumriss</button>
+                <button onclick="chooseMode('time')">⏱️ Zeit-Challenge</button>
+                <button onclick="chooseMode('lives')">❤️ Leben-Modus</button>
             </div>
 
             <div id="menuStepAnswer" class="menuStep" style="display:none;">
                 <h3>Antwortart</h3>
 
-                <button onclick="chooseAnswerType('input')">
-                    Eingabe
-                </button>
-
-                <button onclick="chooseAnswerType('choice')">
-                    Multiple Choice
-                </button>
-
-                <button onclick="backToModeStep()">
-                    Zurück
-                </button>
+                <button onclick="chooseAnswerType('input')">Eingabe</button>
+                <button onclick="chooseAnswerType('choice')">Multiple Choice</button>
+                <button onclick="backToModeStep()">Zurück</button>
             </div>
 
             <div id="menuStepTime" class="menuStep" style="display:none;">
                 <h3>Zeit wählen</h3>
 
-                <button onclick="chooseTimeLimit(30)">
-                    30 Sekunden
-                </button>
-
-                <button onclick="chooseTimeLimit(60)">
-                    60 Sekunden
-                </button>
-
-                <button onclick="chooseTimeLimit(120)">
-                    120 Sekunden
-                </button>
-
-                <button onclick="backToModeStep()">
-                    Zurück
-                </button>
+                <button onclick="chooseTimeLimit(30)">30 Sekunden</button>
+                <button onclick="chooseTimeLimit(60)">60 Sekunden</button>
+                <button onclick="chooseTimeLimit(120)">120 Sekunden</button>
+                <button onclick="backToModeStep()">Zurück</button>
             </div>
 
             <div id="menuStepContinent" class="menuStep" style="display:none;">
                 <h3>Kontinent</h3>
 
-                <button onclick="selectContinent('Europa')">
-                    🇪🇺 Europa
-                </button>
-
-                <button onclick="selectContinent('Amerika')">
-                    🌎 Amerika
-                </button>
-
-                <button onclick="selectContinent('Afrika')">
-                    🌍 Afrika
-                </button>
-
-                <button onclick="selectContinent('AsienOzeanien')">
-                    🌏 Asien + Ozeanien
-                </button>
-
-                <button onclick="selectContinent('Welt')">
-                    🌐 Ganze Welt
-                </button>
-
-                <button onclick="backToAnswerStep()">
-                    Zurück
-                </button>
+                <button onclick="selectContinent('Europa')">🇪🇺 Europa</button>
+                <button onclick="selectContinent('Amerika')">🌎 Amerika</button>
+                <button onclick="selectContinent('Afrika')">🌍 Afrika</button>
+                <button onclick="selectContinent('AsienOzeanien')">🌏 Asien + Ozeanien</button>
+                <button onclick="selectContinent('Welt')">🌐 Ganze Welt</button>
+                <button onclick="backToAnswerStep()">Zurück</button>
             </div>
         </aside>
     </div>
@@ -353,8 +367,15 @@
     <div id="levelUpOverlay" class="levelUpOverlay" style="display:none;">
         <div class="levelUpCard">
             <span>🎉</span>
-            <h2 id="levelUpTitle">Level Up!</h2>
+            <h2>Level Up!</h2>
             <p id="levelUpText">Level 2 erreicht</p>
+        </div>
+    </div>
+
+    <div id="comboOverlay" class="comboOverlay" style="display:none;">
+        <div class="comboCard">
+            <span>🔥</span>
+            <h2 id="comboOverlayText">10 COMBO!</h2>
         </div>
     </div>
 
